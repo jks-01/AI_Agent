@@ -1,0 +1,40 @@
+# 환경 변수
+.env
+.venv/
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.csv
+*.xlsx
+
+node_agents_claude/
+node_agents_openai/
+train/
+test/
+venv/
+evaluation/
+ai_agent_output_web.py
+damage_test.py
+predict.py
+toys_index/
+# Package build
+*.egg-info/
+*.egg
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db*.npy
+*.pt
+*.pth
+*.zip
+venv/
+__pycache__/
+.env
