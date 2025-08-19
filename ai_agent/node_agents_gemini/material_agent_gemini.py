@@ -28,7 +28,7 @@ class MaterialAgent:
     """
     def __init__(self):
         self.model = "gemini-2.5-flash-lite"
-        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError("환경변수 GEMINI_API_KEY (또는 GOOGLE_API_KEY)가 필요합니다.")
         genai.configure(api_key=api_key)

@@ -44,7 +44,7 @@ No explanations. JSON only.
 # ----------------- DamageAgent class -----------------
 class DamageAgent:
     def __init__(self, model: str = "gemini-2.5-flash-lite"):
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        api_key = os.getenv("GEMINI_API_KEY")
         self.client = genai.GenerativeModel(model)
         self.model = model
 

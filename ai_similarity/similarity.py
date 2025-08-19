@@ -45,7 +45,7 @@ plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
 
 # ==================== 시스템 설정 ====================
-INPUT_DIR: str = "test"                     # 검색할 이미지가 있는 폴더 (test 폴더)
+INPUT_DIR: str = "test"                     # 백엔드에서 넘겨받은 유저가 입력한 이미지 폴더 또는 이미지 파일일
 USED_DIR: str = "train"                     # 비교 대상 이미지들이 있는 폴더 (train 폴더)
 
 FEATURES_NPY: str = "embeddings/train_features_vit_g_14.npy"  # train 폴더 이미지들의 임베딩 벡터
@@ -432,7 +432,7 @@ def search_by_image_name(image_name: str, return_results: bool = False) -> Optio
     try:
         print("🔧 OpenCLIP 모델 로드 중...")
         print(f"   모델: {MODEL_NAME}")
-        model, transforms = load_model(MODEL_NAME, device)
+        model, transforms = load_model(MODEL_NAME, device) # 이 함수가 미리 발동돼있어야 함.
         print("✅ 모델 로드 완료")
     except Exception as e:
         print(f"❌ 모델 로드 실패: {e}")
@@ -613,7 +613,7 @@ if __name__ == "__main__":
     print("=" * 80)
     
     # 에이전트에 넘겨줄 리턴값
-    result = search_by_image_name("헬로카봇_스피너블/thunder_0150.webp", return_results=True)
+    result = search_by_image_name("thunder_0734.webp", return_results=True)
     print("=" * 80)
     print("🔍 검색 결과 JSON:")
     print(result)

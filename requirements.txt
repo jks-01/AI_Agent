@@ -26,3 +26,5 @@ google-generativeai>=0.7.0
 
 # 기타
 requests>=2.31.0
+
+
