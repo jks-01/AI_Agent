@@ -1,5 +1,6 @@
 # ai_agent_output.py
 import os
+import time
 import json
 import argparse
 from typing import Optional, Dict, Any
@@ -61,7 +62,7 @@ def run_full_pipeline(used_path: str, *, base_bias: float = 0.7) -> Dict[str, An
     """
     # --- (1) Top-1 ref 찾기 ---
     sim_info = search_by_image_name(used_path, return_results=True)
-    # print(sim_info)
+    print(sim_info)
     # 기대 키: similar_image_path, similar_toy_name, similar_retail_price, similar_used_price
     ref_path = sim_info.get("similar_image_path")
     # --- (2) 이미지 로드 ---
@@ -100,11 +101,14 @@ def run_full_pipeline(used_path: str, *, base_bias: float = 0.7) -> Dict[str, An
 # CLI 실행
 # -----------------------
 def main():
+    t0 = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument("--used", type=str, required=True, help="중고 이미지 경로")
     parser.add_argument("--base-bias", type=float, default=0.7, help="기본 배수 (default=0.7)")
     args = parser.parse_args()
     result = run_full_pipeline(args.used, base_bias=args.base_bias)
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    total_time = time.time() - t0
+    print(f"🎯 총 소요 시간: {total_time:.3f}초")
 if __name__ == "__main__":
     main()
