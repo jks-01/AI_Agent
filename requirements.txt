@@ -13,7 +13,7 @@ transformers>=4.41.2
 sentencepiece   # 일부 HuggingFace 모델 토큰화에 필요
 
 # CLIP 모델 지원
-open_clip_torch>=2.24.0   # ✅ CLIP-G/14 같은 OpenCLIP 계열 지원
+open_clip_torch>=2.24.0   
 ftfy>=6.1.1
 regex
 tqdm
@@ -22,6 +22,7 @@ tqdm
 openai>=1.35.0
 anthropic>=0.34.0
 python-dotenv>=1.0.0
+google-generativeai>=0.7.0
 
 # 기타
 requests>=2.31.0
