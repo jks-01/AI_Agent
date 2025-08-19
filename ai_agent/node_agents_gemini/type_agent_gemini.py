@@ -1,10 +1,7 @@
-# type_agent_gemini.py  (Google Gemini, single-image; returns ENGLISH categories via gemini-2.5-flash)
-import os, io, json, base64
+# type_agent_gemini.py  (Google Gemini, single-image; returns "robot" 등 문자열만)
+import os, io, base64
 from dotenv import load_dotenv
 from PIL import Image
-
-# Google Generative AI SDK
-# pip install google-generativeai
 import google.generativeai as genai
 
 load_dotenv()
@@ -24,79 +21,51 @@ def _img_bytes_to_b64jpeg(img_bytes: bytes, max_side: int = 1024) -> str:
 
 class TypeAgent:
     def __init__(self):
-        # 모델명 고정
         self.model = "gemini-2.5-flash-lite"
-
         api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise RuntimeError("환경변수 GEMINI_API_KEY (또는 GOOGLE_API_KEY)가 필요합니다.")
+            raise RuntimeError("환경변수 GEMINI_API_KEY 필요")
         genai.configure(api_key=api_key)
 
-        self.system_prompt = "Return STRICT JSON only. No extra text."
-        self.user_prompt = """
-You are a toy category expert. Look at ONE product image and output STRICT JSON only.
+        self.prompt = """
+You are a toy category expert. One toy image will be provided.
 
-Return EXACTLY:
-{
-  "type": "robot|building_blocks|dolls|vehicles|educational|action_figures|board_games|musical|sports|others",
-  "battery": "battery|non-battery|unknown",
-  "size": "small|medium|large|unknown"
-}
+Answer ONLY with the category in English:
+robot | building_blocks | dolls | vehicles | educational | action_figures | board_games | musical | sports | others
 
-Rules & mapping:
-- If text suggests 'figure', '모형', '피규어', '프라모델' → map to "action_figures".
-- Vehicles (car/tank/plane/train/boat) → "vehicles".
-- Blocks/LEGO-like/bricks → "building_blocks".
-- Dolls/plush/인형류 → "dolls".
-- Obvious learning aids (alphabet/shape sorter) → "educational".
-- Musical instruments/toys → "musical".
-- Board/box games → "board_games".
-- Sports/balls/rackets → "sports".
-- Anything else → "others".
-- Battery means electronic power required (lights/sound/motors) → "battery". If clearly manual → "non-battery". Else "unknown".
-- Size is visual/relative: handheld figure/mini car → small; typical 20–30cm figure/vehicle → medium; very large/ride-on/base > ~30cm → large.
-- STRICT JSON only. No extra text.
+Do not include JSON, notes, or extra text. Just output one word.
 """.strip()
 
-        # 모델 핸들
         self._model = genai.GenerativeModel(self.model)
 
-    def analyze(self, image_bytes: bytes):
-        """
-        단일 이미지로 장난감 유형/배터리/크기 추정.
-        반환: (STRICT JSON string, token_info)
-        """
-        try:
-            b64 = _img_bytes_to_b64jpeg(image_bytes)
-            img_part = {"mime_type": "image/jpeg", "data": base64.b64decode(b64)}
+    def analyze(self, image_bytes: bytes) -> str:
+        if image_bytes is None:
+            return "others"
 
+        b64 = _img_bytes_to_b64jpeg(image_bytes)
+        img_part = {"mime_type": "image/jpeg", "data": base64.b64decode(b64)}
+
+        try:
             resp = self._model.generate_content(
-                [self.system_prompt + "\n\n" + self.user_prompt, img_part],
+                [self.prompt, img_part],
                 generation_config={"temperature": 0.0},
-                safety_settings=None,  # 필요시 정책 세팅
+                safety_settings=None,
             )
 
-            raw = (getattr(resp, "text", None) or "").strip()
+            text = (getattr(resp, "text", None) or "").strip().lower()
 
-            # ```json 래핑 제거
-            if raw.startswith("```"):
-                raw = raw.strip("`")
-                if raw.lstrip().lower().startswith("json"):
-                    raw = raw.split("\n", 1)[1] if "\n" in raw else ""
+            valid = [
+                "robot","building_blocks","dolls","vehicles",
+                "educational","action_figures","board_games",
+                "musical","sports","others"
+            ]
 
-            # 최소 검증: 비어있으면 기본값
-            result = raw.strip() or '{"type":"others","battery":"unknown","size":"unknown"}'
+            for v in valid:
+                if v in text:
+                    return v
 
-            # usage 메타 (SDK 버전에 따라 필드명이 다를 수 있어 방어적 처리)
-            meta = getattr(resp, "usage_metadata", None)
-            total = getattr(meta, "total_token_count", None)
-            if total is None:
-                total = (getattr(meta, "prompt_token_count", 0) or 0) + (getattr(meta, "candidates_token_count", 0) or 0)
-
-            token_info = {"total_tokens": total or 0}
-
-            return result, token_info
+            return "others"
 
         except Exception as e:
             print(f"TypeAgent error: {e}")
-            return '{"type":"others","battery":"unknown","size":"unknown"}', {"total_tokens": 0}
+            return "others"
